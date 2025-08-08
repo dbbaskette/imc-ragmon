@@ -26,7 +26,7 @@ public class MonitoringListener {
         this.properties = properties;
     }
 
-    @RabbitListener(queues = "#{ragmonProperties.rabbit.monitorQueue}")
+    @RabbitListener(queues = "monitorQueue")
     public void handle(byte[] body) {
         try {
             JsonNode node = objectMapper.readTree(body);

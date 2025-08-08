@@ -11,6 +11,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  rabbitmq:
+    host: ${RAGMON_RABBIT_HOST:localhost}
+    port: ${RAGMON_RABBIT_PORT:5672}
+    username: ${RAGMON_RABBIT_USER:guest}
+    password: ${RAGMON_RABBIT_PASS:guest}
+    virtual-host: ${RAGMON_RABBIT_VHOST:/}
 
 management:
   endpoints:
