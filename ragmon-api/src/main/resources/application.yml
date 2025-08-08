@@ -35,3 +35,5 @@ ragmon:
   stream:
     transport: ${RAGMON_STREAM_TRANSPORT:sse}
     retentionWindowSeconds: ${RAGMON_RETENTION_SECONDS:600}
+  apps:
+    defaultPort: ${RAGMON_APPS_DEFAULT_PORT:8081}

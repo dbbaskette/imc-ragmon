@@ -21,7 +21,7 @@ public class ApiController {
     }
 
     @GetMapping("/events/recent")
-    public List<Event> recent() {
+    public List<Object> recent() {
         return store.recentEvents();
     }
 

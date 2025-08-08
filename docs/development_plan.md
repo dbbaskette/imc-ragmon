@@ -92,6 +92,7 @@ Deliverables: running API with synthetic events; OpenAPI UI; basic persistence.
   - [x] Settings: connection status, notes.
 - [x] Components: basic cards/tables.
 - [~] Controls UI scaffold: segmented control to be wired in Phase 3.
+  - [x] Remove dark mode (standardize on light theme) and add more vivid styling (status color stripes on cards, colorful action buttons, subtle shadows).
 
 Deliverables: polished UI consuming mock data, then live API.
 
@@ -104,6 +105,7 @@ Deliverables: polished UI consuming mock data, then live API.
   - [ ] Actions: POST to service-specific endpoints or control bridge.
   - [ ] Confirmations and error toasts.
 - [ ] Error handling, reconnection strategies, backpressure UX improvements.
+  - [x] Presence/instances: add automatic pruning of offline instances (no activity/heartbeat > 120s) and liveness windows (alive if activity ≤ 30s).
 
 Deliverables: end-to-end live monitoring; control actions for start/stop/scale.
 

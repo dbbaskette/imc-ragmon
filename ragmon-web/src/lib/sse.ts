@@ -3,16 +3,32 @@ import { useEffect, useRef, useState } from 'react'
 export type EventDto = {
   app?: string
   stage?: string
+  event?: 'INIT' | 'HEARTBEAT' | 'FILE_PROCESSED'
+  instanceId?: string
   docId?: string
   timestamp: number
   latencyMs?: number
   status?: string
   message?: string
   url?: string
+  uptime?: string
+  hostname?: string
+  publicHostname?: string
+  currentFile?: string | null
+  filesProcessed?: number
+  filesTotal?: number
+  totalChunks?: number
+  processedChunks?: number
+  processingRate?: number
+  errorCount?: number
+  memoryUsedMB?: number
+  pendingMessages?: number | null
+  filename?: string | null
 }
 
 let sharedES: EventSource | null = null
 let sharedListeners: Array<(e: EventDto) => void> = []
+let sharedDebug: EventDto[] = []
 let sharedConnected = false
 let sharedError: string | null = null
 let started = false
@@ -49,6 +65,8 @@ function startEventSource(url: string, withCredentials: boolean) {
       lastMessageAt = Date.now()
       missedChecks = 0
       const data = JSON.parse(msg.data) as EventDto
+      sharedDebug.push(data)
+      if (sharedDebug.length > 200) sharedDebug.shift()
       for (const cb of sharedListeners) cb(data)
     } catch {
       // ignore
@@ -78,6 +96,7 @@ function ensureEventSource(url: string, withCredentials: boolean) {
 export function useSharedSSE(url: string, options?: { withCredentials?: boolean; onEvent?: (e: EventDto) => void }) {
   const [connected, setConnected] = useState(sharedConnected)
   const [error, setError] = useState<string | null>(sharedError)
+  const [debug, setDebug] = useState<EventDto[]>(sharedDebug)
   const listenerRef = useRef<(e: EventDto) => void>(() => {})
 
   useEffect(() => {
@@ -91,6 +110,7 @@ export function useSharedSSE(url: string, options?: { withCredentials?: boolean;
     const id = setInterval(() => {
       setConnected(sharedConnected)
       setError(sharedError)
+      setDebug(sharedDebug.slice(-50))
     }, 1000)
     return () => {
       sharedListeners = sharedListeners.filter(x => x !== cb)
@@ -98,5 +118,5 @@ export function useSharedSSE(url: string, options?: { withCredentials?: boolean;
     }
   }, [url, options?.withCredentials])
 
-  return { connected, error }
+  return { connected, error, debug }
 }

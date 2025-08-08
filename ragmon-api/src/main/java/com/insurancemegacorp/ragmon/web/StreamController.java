@@ -1,6 +1,5 @@
 package com.insurancemegacorp.ragmon.web;
 
-import com.insurancemegacorp.ragmon.model.Event;
 import com.insurancemegacorp.ragmon.service.EventStore;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -20,11 +19,13 @@ public class StreamController {
     }
 
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<Event>> stream() {
-        Flux<ServerSentEvent<Event>> events = store.stream()
-                .map(e -> ServerSentEvent.<Event>builder(e).event("event").build());
-        Flux<ServerSentEvent<Event>> heartbeat = Flux.interval(Duration.ofSeconds(5))
-                .map(tick -> ServerSentEvent.<Event>builder().event("heartbeat").data((Event) null).build());
+    public Flux<ServerSentEvent<?>> stream() {
+        Flux<ServerSentEvent<?>> events = store.stream()
+                .map(e -> ServerSentEvent.builder(e).build());
+        Flux<ServerSentEvent<?>> heartbeat = Flux.interval(Duration.ZERO, Duration.ofSeconds(5))
+                .map(tick -> ServerSentEvent.builder("")
+                        .event("heartbeat")
+                        .build());
         return Flux.merge(heartbeat, events);
     }
 }

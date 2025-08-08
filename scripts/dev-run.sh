@@ -58,16 +58,39 @@ start_rabbit() {
 
 stop_all() {
   echo "Stopping..."
-  if [[ -n "$WEB_PGID" ]]; then
-    kill -TERM -"$WEB_PGID" 2>/dev/null || true
+  # Best-effort graceful stop by process-group
+  for PG in "$WEB_PGID" "$API_PGID"; do
+    if [[ -n "$PG" ]]; then
+      kill -TERM -"$PG" 2>/dev/null || true
+    fi
+  done
+  sleep 1
+  for PG in "$WEB_PGID" "$API_PGID"; do
+    if [[ -n "$PG" ]]; then
+      kill -TERM -"$PG" 2>/dev/null || true
+    fi
+  done
+  # Fallback: kill listeners on known dev ports
+  if command -v lsof >/dev/null 2>&1; then
+    for PORT in 8080 5173; do
+      for PID in $(lsof -ti tcp:"$PORT" -sTCP:LISTEN 2>/dev/null || true); do
+        kill -TERM "$PID" 2>/dev/null || true
+      done
+    done
   fi
-  if [[ -n "$API_PGID" ]]; then
-    kill -TERM -"$API_PGID" 2>/dev/null || true
+  sleep 1
+  # Force kill if still around
+  if command -v lsof >/dev/null 2>&1; then
+    for PORT in 8080 5173; do
+      for PID in $(lsof -ti tcp:"$PORT" -sTCP:LISTEN 2>/dev/null || true); do
+        kill -KILL "$PID" 2>/dev/null || true
+      done
+    done
   fi
   wait || true
 }
 
-trap stop_all INT TERM EXIT
+trap stop_all INT TERM QUIT EXIT
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)

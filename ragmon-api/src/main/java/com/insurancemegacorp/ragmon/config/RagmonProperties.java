@@ -7,10 +7,12 @@ public class RagmonProperties {
     private final Rabbit rabbit = new Rabbit();
     private final Security security = new Security();
     private final Stream stream = new Stream();
+    private final Apps apps = new Apps();
 
     public Rabbit getRabbit() { return rabbit; }
     public Security getSecurity() { return security; }
     public Stream getStream() { return stream; }
+    public Apps getApps() { return apps; }
 
     public static class Rabbit {
         private String host;
@@ -57,5 +59,11 @@ public class RagmonProperties {
         public void setTransport(String transport) { this.transport = transport; }
         public int getRetentionWindowSeconds() { return retentionWindowSeconds; }
         public void setRetentionWindowSeconds(int retentionWindowSeconds) { this.retentionWindowSeconds = retentionWindowSeconds; }
+    }
+
+    public static class Apps {
+        private int defaultPort = 8080;
+        public int getDefaultPort() { return defaultPort; }
+        public void setDefaultPort(int defaultPort) { this.defaultPort = defaultPort; }
     }
 }

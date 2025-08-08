@@ -32,7 +32,10 @@ public class TestPublishController {
     public Map<String, Object> publish() throws Exception {
         Map<String, Object> payload = new HashMap<>();
         payload.put("status", "PROCESSING");
+        payload.put("event", "HEARTBEAT");
         payload.put("timestamp", Instant.now().toString());
+        payload.put("hostname", "localhost:8080");
+        payload.put("publicHostname", "localhost:8080");
         Map<String, Object> meta = new HashMap<>();
         meta.put("service", "testPublisher");
         meta.put("processingState", "STARTED");
