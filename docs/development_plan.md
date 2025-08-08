@@ -118,8 +118,8 @@ Deliverables: green CI, performance report, updated docs.
 
 ### Phase 5 – Packaging & Deployment
 
-- [ ] Package SPA with API or deploy separately behind reverse proxy.
-- [ ] Profiles: `dev` (H2, no auth), `prod` (Postgres, auth).
+- [x] Package SPA with API on a single port (CF `$PORT`).
+- [ ] Profiles: `dev` (H2, basic auth), `prod` (Postgres, basic/OAuth2 as approved).
 - [ ] Versioning and releases.
 
 Deliverables: runnable artifact(s) and deployment notes.
@@ -185,6 +185,7 @@ We will update these alongside code changes per process.
 - High event rates → use windowed rendering, virtualization, and SSE/WebSocket backpressure handling.
 - Unstable broker → reconnection with exponential backoff; UI banners on degraded mode.
 - Unknown schemas → start with tolerant DTOs and evolve with contract tests.
+- CF port binding → use `server.port=${PORT:8080}` and bundle SPA into Boot static resources.
 
 ## Next Steps (Awaiting Approval)
 

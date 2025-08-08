@@ -11,7 +11,7 @@ set -euo pipefail
 : "${RAGMON_RABBIT_PASS:=guest}"
 : "${RAGMON_RABBIT_MONITOR_QUEUE:=pipeline.metrics}"
 : "${RAGMON_RABBIT_ENABLED:=true}"
-: "${RABBIT_CONTAINER_NAME:=ragmon-rabbit}"
+: "${RABBIT_CONTAINER_NAME:=hdfswatcher-rabbit}"
 : "${RABBIT_IMAGE:=rabbitmq:3.13-management}"
 
 API_PGID=""
@@ -25,6 +25,7 @@ need_docker() {
 }
 
 start_rabbit() {
+  # Try to reuse an already-running named container first
   if docker ps --format '{{.Names}}' | grep -q "^${RABBIT_CONTAINER_NAME}$"; then
     echo "RabbitMQ container '${RABBIT_CONTAINER_NAME}' is already running."
   elif docker ps -a --format '{{.Names}}' | grep -q "^${RABBIT_CONTAINER_NAME}$"; then
