@@ -26,7 +26,7 @@ public class MonitoringListener {
         this.properties = properties;
     }
 
-    @RabbitListener(queues = "monitorQueue")
+    @RabbitListener(queues = "#{monitorQueue.name}")
     public void handle(byte[] body) {
         try {
             JsonNode node = objectMapper.readTree(body);
