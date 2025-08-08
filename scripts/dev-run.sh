@@ -82,7 +82,7 @@ fi
 # Build backend JAR
 ./mvnw -q -DskipTests -pl ragmon-api -am package
 
-# Start backend from JAR (easier to manage PID)
+# Start backend from JAR with dev profile
 cd ragmon-api
 JAR=$(ls -1 target/*-SNAPSHOT.jar | head -n1)
 if [[ ! -f "$JAR" ]]; then
@@ -90,7 +90,8 @@ if [[ ! -f "$JAR" ]]; then
   exit 1
 fi
 
-echo "Starting ragmon-api on :8080 (Basic: $RAGMON_BASIC_USER)"
+echo "Starting ragmon-api on :8080 with profile 'dev' (Basic: $RAGMON_BASIC_USER)"
+SPRING_PROFILES_ACTIVE=dev \
 RAGMON_BASIC_USER="$RAGMON_BASIC_USER" \
 RAGMON_BASIC_PASS="$RAGMON_BASIC_PASS" \
 RAGMON_RABBIT_HOST="$RAGMON_RABBIT_HOST" \
