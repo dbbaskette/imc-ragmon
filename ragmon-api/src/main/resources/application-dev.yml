@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: dev
+
+ragmon:
+  security:
+    basic:
+      username: admin
+      password: admin

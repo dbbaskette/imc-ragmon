@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    web-application-type: reactive
+  datasource:
+    url: ${RAGMON_DB_URL:jdbc:h2:mem:ragmon;DB_CLOSE_DELAY=-1}
+    username: ${RAGMON_DB_USER:sa}
+    password: ${RAGMON_DB_PASS:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics"
+
+ragmon:
+  rabbit:
+    host: ${RAGMON_RABBIT_HOST:localhost}
+    port: ${RAGMON_RABBIT_PORT:5672}
+    vhost: ${RAGMON_RABBIT_VHOST:/}
+    username: ${RAGMON_RABBIT_USER:guest}
+    password: ${RAGMON_RABBIT_PASS:guest}
+  security:
+    basic:
+      username: ${RAGMON_BASIC_USER:admin}
+      password: ${RAGMON_BASIC_PASS:admin}
+  stream:
+    transport: ${RAGMON_STREAM_TRANSPORT:sse}
+    retentionWindowSeconds: ${RAGMON_RETENTION_SECONDS:600}
