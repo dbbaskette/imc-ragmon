@@ -19,6 +19,7 @@ public class RagmonProperties {
         private String username;
         private String password;
         private String monitorQueue = "ragmon.monitor";
+        private boolean enabled = true;
 
         public String getHost() { return host; }
         public void setHost(String host) { this.host = host; }
@@ -32,6 +33,8 @@ public class RagmonProperties {
         public void setPassword(String password) { this.password = password; }
         public String getMonitorQueue() { return monitorQueue; }
         public void setMonitorQueue(String monitorQueue) { this.monitorQueue = monitorQueue; }
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
     public static class Security {

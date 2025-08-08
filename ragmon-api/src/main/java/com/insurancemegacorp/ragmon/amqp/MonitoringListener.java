@@ -8,9 +8,11 @@ import com.insurancemegacorp.ragmon.service.EventStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(prefix = "ragmon.rabbit", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class MonitoringListener {
     private static final Logger log = LoggerFactory.getLogger(MonitoringListener.class);
 
