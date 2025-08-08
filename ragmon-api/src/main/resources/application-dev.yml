@@ -7,5 +7,6 @@ ragmon:
     basic:
       username: admin
       password: admin
+    allowAnonymousRead: true
   rabbit:
     dockerContainerName: hdfswatcher-rabbit

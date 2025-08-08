@@ -31,13 +31,23 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        return http
+    public SecurityWebFilterChain springSecurityFilterChain(
+            ServerHttpSecurity http,
+            @Value("${ragmon.security.allowAnonymousRead:false}") boolean allowAnonymousRead
+    ) {
+        ServerHttpSecurity.AuthorizeExchangeSpec authorize = http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/", "/actuator/health", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                        .anyExchange().authenticated()
-                )
+                .authorizeExchange(exchanges -> {
+                    exchanges
+                            .pathMatchers("/", "/actuator/health", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
+                    if (allowAnonymousRead) {
+                        exchanges.pathMatchers("/stream", "/api/events/**", "/api/metrics", "/api/apps", "/api/queues").permitAll();
+                    }
+                    exchanges.anyExchange().authenticated();
+                });
+
+        return authorize
+                .and()
                 .httpBasic(Customizer.withDefaults())
                 .build();
     }
