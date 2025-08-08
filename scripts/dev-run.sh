@@ -71,6 +71,10 @@ trap stop_all INT TERM EXIT
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+LOG_DIR="$REPO_ROOT/logs"
+mkdir -p "$LOG_DIR"
+API_LOG="$LOG_DIR/api.log"
+WEB_LOG="$LOG_DIR/web.log"
 
 pushd "$REPO_ROOT" >/dev/null
 
@@ -91,6 +95,7 @@ if [[ ! -f "$JAR" ]]; then
 fi
 
 echo "Starting ragmon-api on :8080 with profile 'dev' (Basic: $RAGMON_BASIC_USER)"
+: > "$API_LOG"
 SPRING_PROFILES_ACTIVE=dev \
 RAGMON_BASIC_USER="$RAGMON_BASIC_USER" \
 RAGMON_BASIC_PASS="$RAGMON_BASIC_PASS" \
@@ -101,19 +106,38 @@ RAGMON_RABBIT_USER="$RAGMON_RABBIT_USER" \
 RAGMON_RABBIT_PASS="$RAGMON_RABBIT_PASS" \
 RAGMON_RABBIT_MONITOR_QUEUE="$RAGMON_RABBIT_MONITOR_QUEUE" \
 RAGMON_RABBIT_ENABLED="$RAGMON_RABBIT_ENABLED" \
-nohup java -jar "$JAR" >/dev/null 2>&1 &
+nohup java -jar "$JAR" >>"$API_LOG" 2>&1 &
 API_PID=$!
 API_PGID=$(ps -o pgid= $API_PID | tr -d ' ')
 cd ..
 
+# Wait for API readiness
+echo "Waiting for API readiness at http://localhost:8080/actuator/health ... (logs: $API_LOG)"
+for i in {1..60}; do
+  if curl -fsS http://localhost:8080/actuator/health >/dev/null; then
+    echo "API is up."
+    break
+  fi
+  sleep 1
+  if (( i % 10 == 0 )); then
+    echo "Still waiting... (see $API_LOG)"
+  fi
+  if [[ $i -eq 60 ]]; then
+    echo "API failed to start within timeout. See $API_LOG" >&2
+  fi
+done
+
 # Start frontend
 cd ragmon-web
-echo "Installing frontend deps (if needed) and starting Vite dev server on :5173"
-npm install --silent >/dev/null 2>&1 || true
-nohup npm run dev >/dev/null 2>&1 &
+echo "Starting Vite dev server on :5173 (logs: $WEB_LOG)"
+: > "$WEB_LOG"
+npm install --silent >>"$WEB_LOG" 2>&1 || true
+nohup npm run dev >>"$WEB_LOG" 2>&1 &
 WEB_PID=$!
 WEB_PGID=$(ps -o pgid= $WEB_PID | tr -d ' ')
 cd ..
+
+echo "Running. Logs: $API_LOG, $WEB_LOG"
 
 # Wait until killed
 wait
