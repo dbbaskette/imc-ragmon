@@ -35,8 +35,8 @@ public class SecurityConfig {
             ServerHttpSecurity http,
             @Value("${ragmon.security.allowAnonymousRead:false}") boolean allowAnonymousRead
     ) {
-        ServerHttpSecurity.AuthorizeExchangeSpec authorize = http
-                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http
+                .csrf(csrf -> csrf.disable())
                 .authorizeExchange(exchanges -> {
                     exchanges
                             .pathMatchers("/", "/actuator/health", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
@@ -44,10 +44,7 @@ public class SecurityConfig {
                         exchanges.pathMatchers("/stream", "/api/events/**", "/api/metrics", "/api/apps", "/api/queues").permitAll();
                     }
                     exchanges.anyExchange().authenticated();
-                });
-
-        return authorize
-                .and()
+                })
                 .httpBasic(Customizer.withDefaults())
                 .build();
     }
