@@ -14,6 +14,9 @@ set -euo pipefail
 : "${RABBIT_CONTAINER_NAME:=ragmon-rabbit}"
 : "${RABBIT_IMAGE:=rabbitmq:3.13-management}"
 
+API_PGID=""
+WEB_PGID=""
+
 need_docker() {
   if ! command -v docker >/dev/null 2>&1; then
     echo "Docker is required to auto-start RabbitMQ. Please install Docker or start your own RabbitMQ instance." >&2
@@ -52,6 +55,19 @@ start_rabbit() {
     -d '{"durable":true}' >/dev/null || true
 }
 
+stop_all() {
+  echo "Stopping..."
+  if [[ -n "$WEB_PGID" ]]; then
+    kill -TERM -"$WEB_PGID" 2>/dev/null || true
+  fi
+  if [[ -n "$API_PGID" ]]; then
+    kill -TERM -"$API_PGID" 2>/dev/null || true
+  fi
+  wait || true
+}
+
+trap stop_all INT TERM EXIT
+
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 
@@ -62,35 +78,40 @@ if [[ "${RAGMON_RABBIT_ENABLED}" == "true" ]]; then
   start_rabbit
 fi
 
-# Build backend
+# Build backend JAR
 ./mvnw -q -DskipTests -pl ragmon-api -am package
 
-# Start backend
-(
-  cd ragmon-api || exit 1
-  echo "Starting ragmon-api on :8080 (Basic: $RAGMON_BASIC_USER)"
-  RAGMON_BASIC_USER="$RAGMON_BASIC_USER" \
-  RAGMON_BASIC_PASS="$RAGMON_BASIC_PASS" \
-  RAGMON_RABBIT_HOST="$RAGMON_RABBIT_HOST" \
-  RAGMON_RABBIT_PORT="$RAGMON_RABBIT_PORT" \
-  RAGMON_RABBIT_VHOST="$RAGMON_RABBIT_VHOST" \
-  RAGMON_RABBIT_USER="$RAGMON_RABBIT_USER" \
-  RAGMON_RABBIT_PASS="$RAGMON_RABBIT_PASS" \
-  RAGMON_RABBIT_MONITOR_QUEUE="$RAGMON_RABBIT_MONITOR_QUEUE" \
-  RAGMON_RABBIT_ENABLED="$RAGMON_RABBIT_ENABLED" \
-  ../mvnw -q spring-boot:run
-) &
+# Start backend from JAR (easier to manage PID)
+cd ragmon-api
+JAR=$(ls -1 target/*-SNAPSHOT.jar | head -n1)
+if [[ ! -f "$JAR" ]]; then
+  echo "Could not find built JAR in target/." >&2
+  exit 1
+fi
+
+echo "Starting ragmon-api on :8080 (Basic: $RAGMON_BASIC_USER)"
+RAGMON_BASIC_USER="$RAGMON_BASIC_USER" \
+RAGMON_BASIC_PASS="$RAGMON_BASIC_PASS" \
+RAGMON_RABBIT_HOST="$RAGMON_RABBIT_HOST" \
+RAGMON_RABBIT_PORT="$RAGMON_RABBIT_PORT" \
+RAGMON_RABBIT_VHOST="$RAGMON_RABBIT_VHOST" \
+RAGMON_RABBIT_USER="$RAGMON_RABBIT_USER" \
+RAGMON_RABBIT_PASS="$RAGMON_RABBIT_PASS" \
+RAGMON_RABBIT_MONITOR_QUEUE="$RAGMON_RABBIT_MONITOR_QUEUE" \
+RAGMON_RABBIT_ENABLED="$RAGMON_RABBIT_ENABLED" \
+nohup java -jar "$JAR" >/dev/null 2>&1 &
 API_PID=$!
+API_PGID=$(ps -o pgid= $API_PID | tr -d ' ')
+cd ..
 
 # Start frontend
-(
-  cd ragmon-web || exit 1
-  echo "Installing frontend deps (if needed) and starting Vite dev server on :5173"
-  npm install --silent
-  npm run dev
-) &
+cd ragmon-web
+echo "Installing frontend deps (if needed) and starting Vite dev server on :5173"
+npm install --silent >/dev/null 2>&1 || true
+nohup npm run dev >/dev/null 2>&1 &
 WEB_PID=$!
+WEB_PGID=$(ps -o pgid= $WEB_PID | tr -d ' ')
+cd ..
 
-trap 'echo "Stopping..."; kill $API_PID $WEB_PID 2>/dev/null || true' INT TERM EXIT
-
+# Wait until killed
 wait
