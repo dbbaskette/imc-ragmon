@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="./assets/ragmon.png" alt="RAGMon Logo" width="800" />
+  <img src="./assets/ragmon.png" alt="RAGMon Logo" width="400" />
 
   <h2>RAGMon</h2>
   <p>Realtime RAG pipeline monitoring & control</p>
