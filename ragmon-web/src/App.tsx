@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import { useSSE, type EventDto } from './lib/sse'
+import { useSharedSSE, type EventDto } from './lib/sse'
 
 function NavBar({ connected }: { connected: boolean }) {
   return (
@@ -70,7 +70,7 @@ function Dashboard({ recent }: { recent: EventDto[] }) {
 function LiveStream() {
   const [items, setItems] = useState<EventDto[]>([])
   const [paused, setPaused] = useState(false)
-  const { connected } = useSSE('/stream', {
+  const { connected } = useSharedSSE('/stream', {
     onEvent: (e) => {
       if (!paused) setItems(prev => [...prev.slice(-999), e])
     }
@@ -145,7 +145,7 @@ function Settings() {
 
 function Shell() {
   const [recent, setRecent] = useState<EventDto[]>([])
-  const { connected } = useSSE('/stream', { onEvent: (e) => setRecent(prev => [...prev.slice(-999), e]) })
+  const { connected } = useSharedSSE('/stream', { onEvent: (e) => setRecent(prev => [...prev.slice(-999), e]) })
 
   useEffect(() => {
     fetch('/api/events/recent', { credentials: 'include' })

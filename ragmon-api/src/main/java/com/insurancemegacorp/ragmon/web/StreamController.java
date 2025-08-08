@@ -3,9 +3,12 @@ package com.insurancemegacorp.ragmon.web;
 import com.insurancemegacorp.ragmon.model.Event;
 import com.insurancemegacorp.ragmon.service.EventStore;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.time.Duration;
 
 @RestController
 public class StreamController {
@@ -17,7 +20,11 @@ public class StreamController {
     }
 
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Event> stream() {
-        return store.stream();
+    public Flux<ServerSentEvent<Event>> stream() {
+        Flux<ServerSentEvent<Event>> events = store.stream()
+                .map(e -> ServerSentEvent.<Event>builder(e).event("event").build());
+        Flux<ServerSentEvent<Event>> heartbeat = Flux.interval(Duration.ofSeconds(15))
+                .map(tick -> ServerSentEvent.<Event>builder().comment("heartbeat").build());
+        return Flux.merge(heartbeat, events);
     }
 }
