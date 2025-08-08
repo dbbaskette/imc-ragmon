@@ -14,7 +14,7 @@ public class RootController {
     @GetMapping("/")
     public Mono<ResponseEntity<Void>> root() {
         return Mono.just(ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create("/swagger-ui/index.html"))
+                .location(URI.create("/swagger-ui.html"))
                 .build());
     }
 }

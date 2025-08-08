@@ -7,6 +7,7 @@ import com.insurancemegacorp.ragmon.model.Event;
 import com.insurancemegacorp.ragmon.service.EventStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -27,18 +28,15 @@ public class MonitoringListener {
     }
 
     @RabbitListener(queues = "#{monitorQueue.name}")
-    public void handle(byte[] body) {
+    public void handle(Message message) {
         try {
+            byte[] body = message.getBody();
             JsonNode node = objectMapper.readTree(body);
             Event event = new Event();
 
-            // Support two shapes:
-            // 1) Direct fields: app, stage, docId, timestamp, latencyMs, status, message, url
-            // 2) textProc metrics: status + meta.service, meta.processingState, meta.inputMode, lastError, timestamp
             if (node.has("meta") && node.get("meta").has("service")) {
                 JsonNode meta = node.get("meta");
                 event.setApp(text(meta, "service"));
-                // Prefer processingState then inputMode as stage surrogate
                 event.setStage(text(meta, "processingState") != null ? text(meta, "processingState") : text(meta, "inputMode"));
                 event.setStatus(text(node, "status"));
                 event.setMessage(text(node, "lastError"));
@@ -64,7 +62,6 @@ public class MonitoringListener {
 
     private static long parseTimestamp(JsonNode node) {
         if (node.isNumber()) return node.asLong();
-        // Accept ISO-8601 strings, fallback to now
         try {
             return java.time.Instant.parse(node.asText()).toEpochMilli();
         } catch (Exception e) {
