@@ -26,11 +26,6 @@ management:
 
 ragmon:
   rabbit:
-    host: ${RAGMON_RABBIT_HOST:localhost}
-    port: ${RAGMON_RABBIT_PORT:5672}
-    vhost: ${RAGMON_RABBIT_VHOST:/}
-    username: ${RAGMON_RABBIT_USER:guest}
-    password: ${RAGMON_RABBIT_PASS:guest}
     monitorQueue: ${RAGMON_RABBIT_MONITOR_QUEUE:pipeline.metrics}
     enabled: ${RAGMON_RABBIT_ENABLED:true}
   security:
