@@ -18,6 +18,7 @@ let sharedError: string | null = null
 let started = false
 let lastMessageAt = 0
 let reconnectDelayMs = 1000
+let missedChecks = 0
 
 function startEventSource(url: string, withCredentials: boolean) {
   if (sharedES) sharedES.close()
@@ -31,7 +32,6 @@ function startEventSource(url: string, withCredentials: boolean) {
   es.onerror = () => {
     sharedConnected = false
     sharedError = 'disconnected'
-    // close and schedule reopen with backoff
     try { es.close() } catch {}
     sharedES = null
     setTimeout(() => {
@@ -42,10 +42,12 @@ function startEventSource(url: string, withCredentials: boolean) {
   }
   es.addEventListener('heartbeat', () => {
     lastMessageAt = Date.now()
+    missedChecks = 0
   })
   es.onmessage = (msg) => {
     try {
       lastMessageAt = Date.now()
+      missedChecks = 0
       const data = JSON.parse(msg.data) as EventDto
       for (const cb of sharedListeners) cb(data)
     } catch {
@@ -58,9 +60,14 @@ function ensureEventSource(url: string, withCredentials: boolean) {
   if (!started) {
     started = true
     startEventSource(url, withCredentials)
-    // health monitor: if no messages or heartbeat in 25s, mark disconnected
     setInterval(() => {
-      if (Date.now() - lastMessageAt > 25000) {
+      // allow 2 missed 5s heartbeats (approx 12s) plus buffer → 20s
+      if (Date.now() - lastMessageAt > 20000) {
+        missedChecks++
+      } else {
+        missedChecks = 0
+      }
+      if (missedChecks >= 2) {
         sharedConnected = false
         sharedError = 'timeout'
       }

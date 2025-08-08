@@ -23,7 +23,7 @@ public class StreamController {
     public Flux<ServerSentEvent<Event>> stream() {
         Flux<ServerSentEvent<Event>> events = store.stream()
                 .map(e -> ServerSentEvent.<Event>builder(e).event("event").build());
-        Flux<ServerSentEvent<Event>> heartbeat = Flux.interval(Duration.ofSeconds(10))
+        Flux<ServerSentEvent<Event>> heartbeat = Flux.interval(Duration.ofSeconds(5))
                 .map(tick -> ServerSentEvent.<Event>builder().event("heartbeat").data((Event) null).build());
         return Flux.merge(heartbeat, events);
     }
