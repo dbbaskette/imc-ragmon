@@ -58,50 +58,54 @@ Status markers: [ ] not started, [~] in progress, [x] done.
 
 ### Phase 0 – Discovery & Design
 
-- [ ] Inventory `rag-stream.sh` outputs; identify event source(s) and schemas.
-- [ ] Confirm RabbitMQ topology (exchange, queues, routing keys).
-- [ ] Enumerate available Actuator endpoints for `hdfsWatcher`, `textProc`, `embedProc`.
-- [ ] Agree on read-only vs control (start/stop/scale) scope.
-- [ ] Validate security and deployment constraints.
+- [x] Inventory `rag-stream.sh` outputs; identify event source(s) and schemas.
+- [x] Confirm RabbitMQ topology (exchange, queues, routing keys).
+- [x] Enumerate available Actuator endpoints for `hdfsWatcher`, `textProc`, `embedProc`.
+- [x] Agree on read-only vs control (start/stop/scale) scope.
+- [x] Validate security and deployment constraints.
 
 Deliverables: finalized message schemas; finalized UI scope; transport choice (WebSocket vs SSE).
 
 ### Phase 1 – Backend Scaffolding (ragmon-api)
 
-- [ ] Create Spring Boot 3.5.4 module with Maven Wrapper and parent POM.
-- [ ] Add deps: `spring-boot-starter-webflux`, `spring-boot-starter-amqp`, `spring-boot-starter-actuator`, `spring-boot-starter-validation`, `springdoc-openapi-starter-webflux-ui`, `spring-boot-starter-security` (if needed), DB (H2/Postgres), `spring-boot-starter-websocket` (if WebSocket), or SSE via WebFlux.
-- [ ] Model event DTOs; implement AMQP consumer/bridge to an internal event bus.
-- [ ] Expose streaming endpoint `/stream` (WebSocket or SSE) and REST endpoints (`/api/apps`, `/api/queues`, `/api/metrics`, `/api/events/recent`).
-- [ ] Persist event history (rolling window) with retention policies.
-- [ ] Health checks and OpenAPI docs.
-- [ ] Basic Auth wired from env: `RAGMON_BASIC_USER`/`RAGMON_BASIC_PASS` → `ragmon.security.basic.*`.
-- [ ] Properties files per profile with env override mapping for RabbitMQ and DB.
+- [x] Create Spring Boot 3.5.4 module with Maven Wrapper and parent POM.
+- [x] Add deps: `spring-boot-starter-webflux`, `spring-boot-starter-amqp`, `spring-boot-starter-actuator`, `spring-boot-starter-validation`, `springdoc-openapi-starter-webflux-ui`, `spring-boot-starter-security`, DB (H2/Postgres).
+- [x] Model event DTOs; implement AMQP consumer/bridge to an internal event bus.
+- [x] Expose streaming endpoint `/stream` (SSE) and REST endpoints (`/api/apps`, `/api/queues`, `/api/metrics`, `/api/events/recent`).
+- [x] Persist event history (rolling window) with retention policies.
+- [x] Health checks and OpenAPI docs.
+- [x] Basic Auth wired from env: `RAGMON_BASIC_USER`/`RAGMON_BASIC_PASS` → `ragmon.security.basic.*`.
+- [x] Properties files per profile with env override mapping for RabbitMQ and DB.
+- [x] Map `pipeline.metrics` schema (from `textProc` meta) into Event model.
 
 Deliverables: running API with synthetic events; OpenAPI UI; basic persistence.
 
 ### Phase 2 – Frontend Scaffolding (ragmon-web)
 
-- [ ] Bootstrap Vite + React + TS + Tailwind + shadcn/ui; configure ESLint/Prettier.
-- [ ] Layout shell: top nav, left sidebar, responsive content area (dark/light).
-- [ ] Data layer: TanStack Query; API client; WebSocket/SSE hook; global toasts.
-- [ ] Pages/Views:
-  - [ ] Dashboard: KPIs (throughput, backlog, error rate), trend charts, current status.
-  - [ ] Live Stream: real-time table with autoscroll, pause/resume, filters, search.
-  - [ ] Queues & Apps: queue depth, consumers, rates; app cards with health; drill-in details.
-  - [ ] Settings: connection status, theme, retention knobs; credentials presence (read-only display) and transport selector.
-- [ ] Components: KPI cards, time window selector, event row, severity badges, chart widgets.
-- [ ] Controls UI: segmented control (Start | Stop | Scale), toggles and confirmation modals.
+- [x] Bootstrap Vite + React + TS + Tailwind; configure ESLint/Prettier.
+- [x] Layout shell: top nav, left sidebar, responsive content area (light theme).
+- [x] Data layer: SSE hook; basic fetch for recent events.
+- [x] Pages/Views:
+  - [x] Dashboard: KPIs (counts) and recent events table.
+  - [x] Live Stream: real-time table with pause/resume.
+  - [x] Queues & Apps: app cards with URLs from first messages.
+  - [x] Settings: connection status, notes.
+- [x] Components: basic cards/tables.
+- [~] Controls UI scaffold: segmented control to be wired in Phase 3.
 
 Deliverables: polished UI consuming mock data, then live API.
 
 ### Phase 3 – Integration & Controls
 
-- [ ] Switch from mock to real API/stream.
-- [ ] Map event schema fields to UI (app, stage, docId, latency, status).
-- [ ] Optional controls: surface start/stop/scale if approved and available.
-- [ ] Error handling, reconnection strategies, backpressure UX.
+- [x] Switch to real API/stream (SSE) wired.
+- [x] Map `pipeline.metrics` schema fields to UI (service → app, processingState → stage, lastError → message).
+- [ ] Controls: implement Start/Stop/Scale for services that expose management endpoints.
+  - [ ] Discovery: show control buttons only when service advertises capability.
+  - [ ] Actions: POST to service-specific endpoints or control bridge.
+  - [ ] Confirmations and error toasts.
+- [ ] Error handling, reconnection strategies, backpressure UX improvements.
 
-Deliverables: end-to-end live monitoring; optional control actions.
+Deliverables: end-to-end live monitoring; control actions for start/stop/scale.
 
 ### Phase 4 – Testing, Perf, and Docs
 
