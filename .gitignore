@@ -1,0 +1,34 @@
+# macOS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+.eslintcache
+.next/
+.cache/
+coverage/
+
+# Java / Spring
+.target/
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+logs/
+*.log
+
+# Env & local config
+.env
+.env.*
+*.local
+
+# Misc
+*.swp
+*.swo

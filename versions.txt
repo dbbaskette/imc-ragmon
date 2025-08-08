@@ -1,0 +1,34 @@
+# Version Matrix for imc-ragmon
+# Note: Spring Boot manages most dependency versions via its BOM; pin top-level only.
+
+Java=21
+SpringBoot=3.5.4
+
+# Backend (managed by Boot 3.5.4 BOM unless overridden)
+SpringWebFlux=managed
+SpringAMQP=managed
+SpringSecurity=managed
+SpringDataJPA=managed
+SpringActuator=managed
+SpringWebsocket=managed
+SpringDocOpenAPI=2.6.0
+H2=2.2.224
+PostgreSQL=42.7.4
+
+# Frontend
+React=18.3.1
+Vite=5.4.0
+TypeScript=5.4.x
+TailwindCSS=3.4.x
+shadcn_ui=latest-compatible
+RadixUI=latest-compatible
+TanStackQuery=5.x
+ECharts=5.5.x
+
+# Messaging / Broker
+RabbitMQ=3.x (server)
+RabbitMQJavaClient=managed
+
+# Notes
+# - Prefer BOM-managed versions; override only if required.
+# - Keep this file authoritative for project-wide versions.
