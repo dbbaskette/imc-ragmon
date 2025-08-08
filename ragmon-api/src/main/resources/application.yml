@@ -25,6 +25,7 @@ ragmon:
     vhost: ${RAGMON_RABBIT_VHOST:/}
     username: ${RAGMON_RABBIT_USER:guest}
     password: ${RAGMON_RABBIT_PASS:guest}
+    monitorQueue: ${RAGMON_RABBIT_MONITOR_QUEUE:ragmon.monitor}
   security:
     basic:
       username: ${RAGMON_BASIC_USER:admin}
