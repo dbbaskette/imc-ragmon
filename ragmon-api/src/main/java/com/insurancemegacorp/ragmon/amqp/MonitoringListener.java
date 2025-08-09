@@ -107,12 +107,30 @@ public class MonitoringListener {
                     }
                 }
 
-                // Update instance registry
+                // Update instance registry (enrich meta with normalized directory hint if present)
                 String instanceId = text(node, "instanceId");
                 boolean isHeartbeat = "INIT".equalsIgnoreCase(event.getEvent()) || "HEARTBEAT".equalsIgnoreCase(event.getEvent());
                 Long bootEpoch = node.has("bootEpoch") && node.get("bootEpoch").isNumber() ? node.get("bootEpoch").asLong() : null;
                 String version = text(node, "version");
-                registry.updateFromMessage(event.getApp(), instanceId, event.getUrl(), event.getStatus(), isHeartbeat, bootEpoch, version, objectMapper.convertValue(meta, Map.class));
+
+                java.util.Map<String, Object> metaMap = new java.util.HashMap<>(objectMapper.convertValue(meta, Map.class));
+                // Normalize potential directory hints into a common key 'localStoragePath'
+                Object dir = null;
+                if (metaMap.containsKey("local-storage-path")) dir = metaMap.get("local-storage-path");
+                if (dir == null && metaMap.containsKey("localStoragePath")) dir = metaMap.get("localStoragePath");
+                if (dir == null && metaMap.containsKey("storagePath")) dir = metaMap.get("storagePath");
+                if (dir == null) {
+                    // Also look for top-level hints on the message just in case apps emit config outside of meta
+                    String topLocal1 = text(node, "local-storage-path");
+                    String topLocal2 = text(node, "localStoragePath");
+                    String topLocal3 = text(node, "storagePath");
+                    dir = topLocal1 != null ? topLocal1 : (topLocal2 != null ? topLocal2 : topLocal3);
+                }
+                if (dir instanceof String && !((String) dir).isBlank()) {
+                    metaMap.put("localStoragePath", dir);
+                }
+
+                registry.updateFromMessage(event.getApp(), instanceId, event.getUrl(), event.getStatus(), isHeartbeat, bootEpoch, version, metaMap);
             } else {
                 event.setApp(text(node, "app"));
                 event.setStage(text(node, "stage"));

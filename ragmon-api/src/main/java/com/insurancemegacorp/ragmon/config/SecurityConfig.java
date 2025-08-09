@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeExchange(exchanges -> {
                     exchanges
-                            .pathMatchers("/", "/actuator/health", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
+                            .pathMatchers("/", "/index.html", "/assets/**", "/static/**", "/favicon.ico",
+                                    "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/actuator/health").permitAll();
                     if (allowAnonymousRead) {
                         exchanges.pathMatchers("/stream", "/api/events/**", "/api/metrics", "/api/apps", "/api/queues").permitAll();
                     }

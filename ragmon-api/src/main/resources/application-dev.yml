@@ -1,8 +1,27 @@
+# Development profile configuration
+
+spring:
+  datasource:
+    url: ${RAGMON_DB_URL:jdbc:h2:mem:ragmon;DB_CLOSE_DELAY=-1}
+    username: ${RAGMON_DB_USER:sa}
+    password: ${RAGMON_DB_PASS:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  rabbitmq:
+    host: ${RAGMON_RABBIT_HOST:localhost}
+    port: ${RAGMON_RABBIT_PORT:5672}
+    username: ${RAGMON_RABBIT_USER:guest}
+    password: ${RAGMON_RABBIT_PASS:guest}
+    virtual-host: ${RAGMON_RABBIT_VHOST:/}
+
 ragmon:
+  rabbit:
+    monitorQueue: ${RAGMON_RABBIT_MONITOR_QUEUE:pipeline.metrics}
+    enabled: ${RAGMON_RABBIT_ENABLED:true}
+    dockerContainerName: hdfswatcher-rabbit
   security:
     basic:
       username: admin
       password: admin
     allowAnonymousRead: true
-  rabbit:
-    dockerContainerName: hdfswatcher-rabbit

@@ -69,6 +69,12 @@ Endpoints
 - Stream: `/stream` (SSE, 5s heartbeat)
 - Proxy: `/api/proxy/{app}/**`
 
+### Cloud Foundry
+
+- Use Paketo Java buildpack with Java 21: set `buildpacks: [paketo-buildpacks/java]` and `BP_JVM_VERSION: 21` in `manifest.yml`.
+- If your foundation uses the legacy Java buildpack, set `JBP_CONFIG_OPEN_JDK_JRE` to `'{"jre":{"version":"21.+"}}'` or `17.+` accordingly.
+- Deploy with the provided script which pre-builds the JAR and pushes via `cf push -p`: `scripts/cf-deploy.sh`.
+
 Event Schema Highlights
 - `instanceId`, `timestamp`, `event: INIT|HEARTBEAT|FILE_PROCESSED`
 - `status: PROCESSING|DISABLED|IDLE|ERROR`

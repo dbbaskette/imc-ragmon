@@ -1,0 +1,31 @@
+applications:
+  - name: ragmon
+    memory: 1G
+    instances: 1
+    # Push the source for the API module by default (cf-deploy.sh overrides with -p built JAR)
+    path: ragmon-api
+    buildpacks:
+      - java_buildpack_offline
+    env:
+      # Use cloud profile for VCAP_SERVICES parsing
+      SPRING_PROFILES_ACTIVE: cloud
+      # Pin JVM version for legacy Java buildpack (resolves UnsupportedClassVersionError)
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+      
+      # Authentication (change in production)
+      RAGMON_BASIC_USER: admin
+      RAGMON_BASIC_PASS: change-me
+
+      # RabbitMQ connection (will be auto-configured from bound service)
+      RAGMON_RABBIT_HOST: localhost
+      RAGMON_RABBIT_PORT: "5672"
+      RAGMON_RABBIT_VHOST: "/"
+      RAGMON_RABBIT_USER: guest
+      RAGMON_RABBIT_PASS: guest
+
+    # Service bindings - Cloud Foundry Services
+    services:
+      - messaging-c856b29a-1c7e-4fd5-ab3b-0633b90869cc
+      - embed-db
+
+

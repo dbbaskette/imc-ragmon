@@ -316,18 +316,90 @@ function Apps({ recent }: { recent: EventDto[] }) {
 
     async function refreshFiles() {
       if (!connected) return
+      // Try to discover a directory hint from the InstanceRegistry meta for this service
+      let dirHint: string | null = null
       try {
-        console.log(`[${app}] Attempting to refresh files via /api/files`)
-        const r = await call(app, '/api/files', 'GET')
-        console.log(`[${app}] Files API response: status=${r.status}`)
-        const data = JSON.parse(r.text)
-        setFiles(Array.isArray(data.files) ? data.files : [])
-        console.log(`[${app}] Files refresh successful`)
-      } catch (error) { 
-        console.log(`[${app}] Files refresh failed:`, error)
-        setFiles([])
-        // Don't automatically mark as down - maybe just the files endpoint doesn't exist
+        const instRes = await fetch('/api/instances', { credentials: 'include' })
+        const instances = await instRes.json()
+        const match = (instances || []).find((i: any) => i?.service === app)
+        const meta = match?.meta || {}
+        dirHint = meta.localStoragePath || meta['local-storage-path'] || meta.local_storage_path || meta.storagePath || null
+        if (!dirHint && typeof meta === 'object') {
+          // Heuristic: pick the first meta value that looks like an absolute or HDFS path
+          for (const [_, v] of Object.entries(meta)) {
+            if (typeof v === 'string' && (v.startsWith('/') || v.startsWith('hdfs://') || v.startsWith('file:/'))) {
+              dirHint = v
+              break
+            }
+          }
+        }
+      } catch {}
+
+      const baseCandidates = ['/api/files', '/files', '/api/v1/files']
+      const paramNames = ['dir', 'directory', 'path', 'baseDir']
+      const candidates = dirHint
+        ? [
+            ...baseCandidates.flatMap(p => paramNames.map(n => `${p}?${n}=${encodeURIComponent(dirHint as string)}`)),
+            ...baseCandidates
+          ]
+        : baseCandidates
+      let lastError: any = null
+      for (const path of candidates) {
+        try {
+          console.log(`[${app}] Attempting to refresh files via ${path}`)
+          const r = await call(app, path, 'GET')
+          if (r.status < 200 || r.status >= 300) {
+            console.warn(`[${app}] Files API non-OK status ${r.status} at ${path}`)
+            continue
+          }
+          let data: any
+          try { data = JSON.parse(r.text) } catch (e) {
+            console.warn(`[${app}] Files API response is not JSON at ${path}`)
+            continue
+          }
+          const list = Array.isArray(data)
+            ? data
+            : Array.isArray((data as any).files)
+              ? (data as any).files
+              : Array.isArray((data as any).items)
+                ? (data as any).items
+                : Array.isArray((data as any).data)
+                  ? (data as any).data
+                  : Array.isArray((data as any).entries)
+                    ? (data as any).entries
+                    : null
+          if (Array.isArray(list)) {
+            const normalized = list.map((x: any) => {
+              let name: string | undefined = typeof x?.name === 'string' ? x.name : undefined
+              const url: string | undefined = typeof x?.url === 'string' ? x.url : undefined
+              if (url) {
+                try {
+                  const u = new URL(url)
+                  const p = u.pathname || ''
+                  const marker = '/policies/'
+                  if (p.includes(marker)) {
+                    name = p.substring(p.indexOf(marker) + marker.length)
+                  } else {
+                    const idx = p.lastIndexOf('/')
+                    name = idx >= 0 ? p.substring(idx + 1) : p
+                  }
+                } catch {}
+              }
+              return { ...x, name: name || x?.name }
+            })
+            setFiles(normalized)
+            console.log(`[${app}] Files refresh successful from ${path} (count=${normalized.length})`)
+            return
+          }
+          console.warn(`[${app}] Files API JSON shape not recognized at ${path}`)
+        } catch (err) {
+          lastError = err
+          console.log(`[${app}] Files refresh attempt failed at candidate path`, err)
+        }
       }
+      // All candidates failed
+      console.log(`[${app}] Files refresh failed for all candidates`, lastError)
+      setFiles([])
     }
 
     async function bulk(action: 'process-now' | 'reprocess') {

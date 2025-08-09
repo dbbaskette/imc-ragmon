@@ -1,22 +1,12 @@
+# Base configuration - minimal defaults
+# Profile-specific configs in application-{profile}.yml
+
 server:
   port: ${PORT:8080}
 
 spring:
   main:
     web-application-type: reactive
-  datasource:
-    url: ${RAGMON_DB_URL:jdbc:h2:mem:ragmon;DB_CLOSE_DELAY=-1}
-    username: ${RAGMON_DB_USER:sa}
-    password: ${RAGMON_DB_PASS:}
-  jpa:
-    hibernate:
-      ddl-auto: update
-  rabbitmq:
-    host: ${RAGMON_RABBIT_HOST:localhost}
-    port: ${RAGMON_RABBIT_PORT:5672}
-    username: ${RAGMON_RABBIT_USER:guest}
-    password: ${RAGMON_RABBIT_PASS:guest}
-    virtual-host: ${RAGMON_RABBIT_VHOST:/}
 
 management:
   endpoints:
@@ -25,13 +15,6 @@ management:
         include: "health,info,metrics"
 
 ragmon:
-  rabbit:
-    monitorQueue: ${RAGMON_RABBIT_MONITOR_QUEUE:pipeline.metrics}
-    enabled: ${RAGMON_RABBIT_ENABLED:true}
-  security:
-    basic:
-      username: ${RAGMON_BASIC_USER:admin}
-      password: ${RAGMON_BASIC_PASS:admin}
   stream:
     transport: ${RAGMON_STREAM_TRANSPORT:sse}
     retentionWindowSeconds: ${RAGMON_RETENTION_SECONDS:600}

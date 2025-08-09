@@ -1,0 +1,32 @@
+# Cloud Foundry profile configuration
+# Uses VCAP_SERVICES for service binding (RabbitMQ, PostgreSQL)
+
+spring:
+  datasource:
+    # PostgreSQL from bound service
+    url: ${RAGMON_DB_URL:jdbc:postgresql://localhost:5432/ragmon}
+    username: ${RAGMON_DB_USER:postgres}
+    password: ${RAGMON_DB_PASS:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    # RabbitMQ from bound service
+    host: ${RAGMON_RABBIT_HOST:localhost}
+    port: ${RAGMON_RABBIT_PORT:5672}
+    username: ${RAGMON_RABBIT_USER:guest}
+    password: ${RAGMON_RABBIT_PASS:guest}
+    virtual-host: ${RAGMON_RABBIT_VHOST:/}
+
+ragmon:
+  rabbit:
+    monitorQueue: ${RAGMON_RABBIT_MONITOR_QUEUE:pipeline.metrics}
+    enabled: ${RAGMON_RABBIT_ENABLED:true}
+  security:
+    basic:
+      username: ${RAGMON_BASIC_USER:admin}
+      password: ${RAGMON_BASIC_PASS:admin}
+    allowAnonymousRead: false

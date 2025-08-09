@@ -79,5 +79,8 @@ prompt/
 .cursor/
 .cursorignore
 .cursordb
-.cursorrules.release-exec
+.cursorrules
+
+# Local deployment manifests (use manifest.yml.template instead)
+manifest.yml.release-exec
 .release-exec

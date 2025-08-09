@@ -1,0 +1,43 @@
+# Cloud Foundry manifest template for RAGMon (generic)
+# Copy to `manifest.yml` and fill in environment values as needed.
+
+applications:
+  - name: ragmon
+    memory: 1G
+    instances: 1
+    # Option A: Push source (Paketo will build with Maven)
+    path: ragmon-api
+    buildpacks:
+      - paketo-buildpacks/java
+
+    # Option B: Push a pre-built JAR (uncomment and set correct filename)
+    # path: ragmon-api/target/ragmon-api-<version>.jar
+
+    env:
+      # Use cloud profile for VCAP_SERVICES parsing
+      SPRING_PROFILES_ACTIVE: cloud
+      # Pin JVM runtime version for Paketo
+      BP_JVM_VERSION: 21
+      
+      # Authentication (change in production)
+      RAGMON_BASIC_USER: ${RAGMON_BASIC_USER}
+      RAGMON_BASIC_PASS: ${RAGMON_BASIC_PASS}
+
+      # RabbitMQ connection (will be auto-configured from bound service)
+      RAGMON_RABBIT_HOST: ${RABBIT_HOST}
+      RAGMON_RABBIT_PORT: "${RABBIT_PORT:-5672}"
+      RAGMON_RABBIT_VHOST: "${RABBIT_VHOST:-/}"
+      RAGMON_RABBIT_USER: ${RABBIT_USER}
+      RAGMON_RABBIT_PASS: ${RABBIT_PASS}
+
+      # Optional: DB (will be auto-configured from bound service)
+      # RAGMON_DB_URL: ${DB_URL}
+      # RAGMON_DB_USER: ${DB_USER}
+      # RAGMON_DB_PASS: ${DB_PASS}
+
+    # Service bindings (uncomment and adjust service names)
+    # services:
+    #   - rabbitmq-service
+    #   - postgresql-service
+
+
